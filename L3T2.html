@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Project Management Tool</title>
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+background:#f4f6fb;
+padding:20px;
+}
+
+header{
+text-align:center;
+margin-bottom:20px;
+}
+
+header h1{
+color:#2c3e50;
+}
+
+.container{
+max-width:900px;
+margin:auto;
+}
+
+.form-box{
+background:white;
+padding:20px;
+border-radius:10px;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+margin-bottom:20px;
+}
+
+.form-box input,
+.form-box button{
+padding:10px;
+margin:5px;
+border-radius:5px;
+border:1px solid #ccc;
+}
+
+.form-box button{
+background:#3498db;
+color:white;
+border:none;
+cursor:pointer;
+}
+
+.form-box button:hover{
+background:#2980b9;
+}
+
+.project{
+background:white;
+margin-top:20px;
+padding:15px;
+border-radius:10px;
+box-shadow:0 3px 8px rgba(0,0,0,0.1);
+}
+
+.project h3{
+color:#34495e;
+}
+
+.task{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:10px;
+margin-top:10px;
+background:#f9f9f9;
+border-radius:5px;
+}
+
+.task.complete{
+text-decoration:line-through;
+color:green;
+}
+
+.task button{
+margin-left:5px;
+padding:5px 8px;
+border:none;
+border-radius:4px;
+cursor:pointer;
+}
+
+.complete-btn{
+background:#2ecc71;
+color:white;
+}
+
+.delete-btn{
+background:#e74c3c;
+color:white;
+}
+
+.progress{
+margin-top:10px;
+height:10px;
+background:#ddd;
+border-radius:5px;
+overflow:hidden;
+}
+
+.progress-bar{
+height:100%;
+background:#2ecc71;
+width:0%;
+}
+
+@media(max-width:600px){
+
+.task{
+flex-direction:column;
+align-items:flex-start;
+}
+
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Project Management Tool</h1>
+<p>Create Projects • Add Tasks • Track Progress</p>
+</header>
+
+<div class="container">
+
+<div class="form-box">
+<input type="text" id="projectName" placeholder="Project Name">
+<button onclick="createProject()">Create Project</button>
+</div>
+
+<div id="projects"></div>
+
+</div>
+
+<script>
+
+let projects = JSON.parse(localStorage.getItem("projects")) || [];
+
+function saveData(){
+localStorage.setItem("projects",JSON.stringify(projects));
+}
+
+function createProject(){
+
+let name=document.getElementById("projectName").value;
+
+if(name===""){
+alert("Enter project name");
+return;
+}
+
+projects.push({
+name:name,
+tasks:[]
+});
+
+document.getElementById("projectName").value="";
+
+saveData();
+displayProjects();
+
+}
+
+function addTask(index){
+
+let taskText=prompt("Enter task name");
+let deadline=prompt("Enter deadline (YYYY-MM-DD)");
+
+if(taskText==null || taskText==="") return;
+
+projects[index].tasks.push({
+text:taskText,
+deadline:deadline,
+complete:false
+});
+
+saveData();
+displayProjects();
+
+}
+
+function toggleTask(pIndex,tIndex){
+
+let task=projects[pIndex].tasks[tIndex];
+task.complete=!task.complete;
+
+saveData();
+displayProjects();
+
+}
+
+function deleteTask(pIndex,tIndex){
+
+projects[pIndex].tasks.splice(tIndex,1);
+
+saveData();
+displayProjects();
+
+}
+
+function displayProjects(){
+
+let container=document.getElementById("projects");
+container.innerHTML="";
+
+projects.forEach((project,pIndex)=>{
+
+let div=document.createElement("div");
+div.className="project";
+
+let completed=project.tasks.filter(t=>t.complete).length;
+let progress=project.tasks.length==0?0:(completed/project.tasks.length)*100;
+
+div.innerHTML=`
+
+<h3>${project.name}</h3>
+
+<button onclick="addTask(${pIndex})">Add Task</button>
+
+<div class="progress">
+<div class="progress-bar" style="width:${progress}%"></div>
+</div>
+
+`;
+
+project.tasks.forEach((task,tIndex)=>{
+
+let taskDiv=document.createElement("div");
+taskDiv.className="task "+(task.complete?"complete":"");
+
+taskDiv.innerHTML=`
+
+<span>
+${task.text} 
+<br>
+<small>Deadline: ${task.deadline}</small>
+</span>
+
+<div>
+<button class="complete-btn" onclick="toggleTask(${pIndex},${tIndex})">✔</button>
+<button class="delete-btn" onclick="deleteTask(${pIndex},${tIndex})">✖</button>
+</div>
+
+`;
+
+div.appendChild(taskDiv);
+
+});
+
+container.appendChild(div);
+
+});
+
+}
+
+displayProjects();
+
+</script>
+
+</body>
+</html>
